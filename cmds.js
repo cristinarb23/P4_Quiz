@@ -189,13 +189,30 @@ exports.testCmd = (rl,id) => {
 	validateId(id) //primero tenemos que validar el usuario
 		.then(id => models.quiz.findById(id))
 		.then(quiz => {
+		    if(!quiz){
+        throw new Error(`No hay un quiz asociado a ese id=${id}.`);
+        }
+        return makeQuestion(rl, `${quiz.question}?: `) //Hacemos la pregunta que queremos testear
+        .then(respuesta => { //guardo la respuesta que he escrito en la pantalla, de la pregunta que hemos elegido nosotros
+        if((respuesta.toLowerCase()) === ((quiz.answer).toLowerCase().trim())) {
+        log('CORRECTO', 'green');
+    } else {
+        log('INCORRECTO', 'red')
+    }
+})
+})
+.catch(Sequelize.ValidationError, error => { //Si hay errores de validación
+        errorlog('El quiz es erroneo: ');
+    error.errors.forEach(({message}) => errorlog(message));
+})
+.catch(error => {
+        errorlog(error.message);
+})
+.then(() => {
+        rl.prompt();
+});
 
-	})
-}
-
-exports.testCmd = (rl, id) =>{
-
-}
+};
 
 /*
 exports.testCmd = (rl,id) =>{
@@ -284,9 +301,9 @@ exports.playCmd = rl => {
         let quiz = toBePlayed[pos];
         toBePlayed.splice(pos, 1);
 
-        return makeQuestion(rl, `${quiz.question}:`)
-            .then(answer => {
-            if(answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
+        return makeQuestion(rl, `${quiz.question}:`) //
+            .then(respuesta => {
+            if(respuesta.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
             score++;
             log('Resuesta correcta', 'green');
             return playOne();
@@ -298,7 +315,7 @@ exports.playCmd = rl => {
     })
     }
 
-    models.quiz.findAll({raw: true})
+    models.quiz.findAll({raw: true}) //para comprobar que no te repita una pregunta que ya habías acertado antes
         .then(quizzes => {
         toBePlayed = quizzes;
 })
