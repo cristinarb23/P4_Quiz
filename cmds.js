@@ -195,9 +195,9 @@ exports.testCmd = (rl,id) => {
         return makeQuestion(rl, `${quiz.question}?: `) //Hacemos la pregunta que queremos testear
         .then(respuesta => { //guardo la respuesta que he escrito en la pantalla, de la pregunta que hemos elegido nosotros
         if((respuesta.toLowerCase()) === ((quiz.answer).toLowerCase().trim())) {
-        log('CORRECTO', 'green');
+        log('Respuesta correcta', 'green');
     } else {
-        log('INCORRECTO', 'red')
+        log('Respuesta Incorrecta', 'red')
     }
 })
 })
