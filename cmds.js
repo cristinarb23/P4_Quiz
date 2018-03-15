@@ -193,26 +193,27 @@ exports.playCmd = rl =>{
     .each(quiz => {
         toBeResolved.push(quiz);
     })
-
-    .then(() => {
-        playOne();
-    })
-
-	  
+	  .then(() => {
+            playOne();
+        })
  const playOne = () =>{
-   if ( toBeResolved.length === 0 ){
+   if ( toBeResolved.length <= 0 ){
 		  log ('No hay mas preguntas','magenta');
 		  log("Fin del juego", 'magenta');
 		   biglog(`Puntuacion ${colorize(score,'magenta')} `);
-		  rl.prompt();
-    }
+		  return;
+    }else{
      let randomId = Math.floor(Math.random()*toBeResolved.length);
-		    
+		   
     // let quiz = model.getByIndex(id);
 	//toBeResolved.splice(toBeResolved.indexOf(quizToAsk), 1);
 	validateId(randomId)
-	.then(id => models.quiz.findById(randomId))
+	 .then(id => models.quiz.findById(randomId))
      .then(quiz =>{
+	  if (!quiz){
+	  	throw new Error(`No existe un quiz asociado al id=${randomId}.`);
+	 }
+	  process.stdout.isTTY && setTimeout( () => {rl.write(quiz.question)},0);
 	  return makeQuestion(rl, (quiz.question))
 	  .then(q => {
 	  process.stdout.isTTY && setTimeout( () => {rl.write(quiz.answer)},0);
@@ -241,8 +242,9 @@ exports.playCmd = rl =>{
 	.then(() =>{
 	   	   rl.prompt();
 	});
+	}
 };
-	  playOne();
+	 
 
 };
 
