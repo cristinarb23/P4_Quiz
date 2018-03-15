@@ -129,7 +129,35 @@ exports.editCmd = (rl, id) => {
 	   	   rl.prompt();
 	   });
 };
-
+exports.testCmd = (rl,id) => {
+		validateId(id) //primero tenemos que validar el usuario
+			.then(id => models.quiz.findById(id))
+			.then(quiz => {
+			    if(!quiz){
+	        throw new Error(`No hay un quiz asociado a ese id=${id}.`);
+	        }
+	        return makeQuestion(rl, `${quiz.question}?: `) //Hacemos la pregunta que queremos testear
+	        .then(respuesta => { //guardo la respuesta que he escrito en la pantalla, de la pregunta que hemos elegido nosotros
+	        if((respuesta.toLowerCase()) === ((quiz.answer).toLowerCase().trim())) {
+	        log('Respuesta correcta', 'green');
+	    } else {
+	        log('Respuesta Incorrecta', 'red')
+	    }
+	})
+	})
+	.catch(Sequelize.ValidationError, error => { //Si hay errores de validación
+	        errorlog('El quiz es erroneo: ');
+	    error.errors.forEach(({message}) => errorlog(message));
+	})
+	.catch(error => {
+	        errorlog(error.message);
+	})
+	.then(() => {
+	        rl.prompt();
+	});
+	
+	};
+	/*
 exports.testCmd = (rl,id) =>{
 	validateId(id)
 	.then(id => models.quiz.findById(id))
@@ -184,7 +212,8 @@ exports.testCmd = (rl,id) =>{
 //		   }
 //		}
 //};
-
+*/
+/*
 exports.playCmd = rl =>{
 	   
 	let score = 0;
@@ -247,7 +276,52 @@ exports.playCmd = rl =>{
 	 
 
 };
-
+*/
+exports.playCmd = rl => {
+	    let score = 0;
+	    let toBePlayed = [];
+	
+	    const playOne = () => {
+	
+	        return Promise.resolve()
+	            .then (() => {
+	            if (toBePlayed.length <= 0) {
+	            console.log("No quedan más preguntas se ha acabado el juegos");
+	            return;
+	        }
+	        let pos = Math.floor(Math.random() * toBePlayed.length);
+	        let quiz = toBePlayed[pos];
+	        toBePlayed.splice(pos, 1);
+	
+	        return makeQuestion(rl, `${quiz.question}:`) //
+	            .then(respuesta => {
+	            if(respuesta.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
+	            score++;
+	            log('Resuesta correcta', 'green');
+	            return playOne();
+	        } else {
+	            log('Respuesta incorrecta', 'red');
+	            log("Fin del juego");
+	        }
+	    })
+	    })
+	    }
+	
+	    models.quiz.findAll({raw: true}) //para comprobar que no te repita una pregunta que ya habías acertado antes
+	        .then(quizzes => {
+	        toBePlayed = quizzes;
+	})
+	.then(() => {
+	        return playOne();
+	})
+	.catch(e => {
+	        console.log("error: " + e);
+	})
+	.then(() => {
+	        console.log(`Tu puntuación actual es:${score}`);
+	    rl.prompt();
+	})
+	};
 
 
 
